@@ -160,7 +160,11 @@ def solve(start, heuristic_func):
     openSet.append(start)
 
     while len(openSet) > 0:
-        low = min(openSet, key=lambda x: x.f)
+        low = 0
+        for i in range(len(openSet)):
+            if openSet[i].f < openSet[low].f:
+                low = i
+
         CURRENT = openSet[low]
 
         if heuristic(CURRENT.data, GOAL_STATE, heuristic_func) == 0:
