@@ -7,74 +7,81 @@
 import pygame
 from board import Puzzle, fnt
 from solver import solve
-# Color
-white = (255,255,255)
+from constants import WIDTH, HEIGHT, WHITE
 
-# Const
-width = 400
-height = 450
-screen = pygame.display.set_mode((width,height))
+
+# Pygame Constants
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
-FPS = 60
 
 # Board Vars
-n = 3
-moves = 0
-board = Puzzle(n, width, height-50, screen)
-solution = None
+BOARD_LENGTH = 3
+MOVES_TAKEN = 0
+GAME_BOARD = Puzzle(BOARD_LENGTH, WIDTH, HEIGHT - 50, screen)
+SOLUTION = None
 i = 0
 
+
 def show_moves():
-    txt = "Moves: " + str(moves)
-    text = fnt.render(txt, 1, (0, 0, 255))
-    screen.blit(text, (20, height-40))
+    """
+    Display the number of moves taken on the screen.
+    """
+    # Render the text onto the screen
+    text = fnt.render(f"Moves: {MOVES_TAKEN}", 1, (0, 0, 255))
+
+    # Blit the text onto the screen at the specified coordinates
+    screen.blit(text, (20, HEIGHT - 40))
+
 
 def draw():
-    global solution, i, moves, FPS
+    """
+    A function that updates the game state.
+    """
+    global SOLUTION, i, MOVES_TAKEN, FPS
 
-    if solution and i < len(solution):
-        moves = i
-        board.model = solution[i].data
+    if SOLUTION and i < len(SOLUTION):
+        MOVES_TAKEN = i
+        GAME_BOARD.model = SOLUTION[i].data
         i += 1
         FPS = 1.5
     else:
-        solution = None
+        SOLUTION = None
         FPS = 60
         i = 0
 
-    board.check_win()
-    board.draw()
+    GAME_BOARD.check_win()
+    GAME_BOARD.draw()
     show_moves()
 
-running = True
-while running:
+
+RUNNING = True
+while RUNNING:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            RUNNING = False
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                if not solution:
+                if not SOLUTION:
                     # Solve Puzzle
-                    solution = solve(board.model, heuristic_func='manhattan')
+                    SOLUTION = solve(GAME_BOARD.model, heuristic_func="manhattan")
 
             if event.key == pygame.K_SPACE:
-                if not solution:
-                    board.set_model()
-                    moves = 0
+                if not SOLUTION:
+                    GAME_BOARD.set_model()
+                    MOVES_TAKEN = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not solution:
+            if not SOLUTION:
                 pos = pygame.mouse.get_pos()
-                placed = board.place(pos)
-                
-                if placed:
-                    moves += 1
+
+                if GAME_BOARD.place(pos):
+                    MOVES_TAKEN += 1
 
     pygame.display.flip()
-    screen.fill(white)
+    screen.fill(WHITE)
     draw()
-    
+
     clock.tick(FPS)
 
 

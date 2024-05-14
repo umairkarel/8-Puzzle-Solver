@@ -4,36 +4,44 @@
     @author: umairkarel
 """
 
-import pygame
 import random
+import pygame
 
 pygame.font.init()
 fnt = pygame.font.SysFont("comicsans", 60)
 
 class Puzzle:
     def __init__(self, n, width, height, screen):
+        """
+        Initializes the Puzzle object with the provided dimensions and screen parameters.
+
+        Parameters:
+            n (int): The number of rows and columns in the puzzle.
+            width (int): The width of the puzzle.
+            height (int): The height of the puzzle.
+            screen: The screen object to display the puzzle.
+
+        Returns:
+            None
+        """
         self.rows = n
         self.cols = n
         self.width = width
         self.height = height
         self.screen = screen
         self.model = [[0 for i in range(self.rows)] for j in range(self.cols)]
-        self.isWin = False
+        self.is_win = False
         self.set_model()
 
     def set_model(self):
-        self.isWin = False
+        self.is_win = False
         nums = [i for i in range((self.rows * self.cols))]
         random.shuffle(nums)
 
         while not self.isSolvable(nums):
             random.shuffle(nums)
 
-        for i in range(len(nums)):
-            row = i // self.cols
-            col = i % self.cols
-
-            self.model[row][col] = nums[i]
+        self.model = [[nums[i * self.cols + j] for j in range(self.cols)] for i in range(self.rows)]
 
     def isSolvable(self, board):
         inv_count = 0
@@ -65,18 +73,18 @@ class Puzzle:
             for j in range(cols):
                 if model[i][j] != num:
                     if i == rows-1 and j == cols-1 and model[i][j] == 0:
-                        self.isWin = True
+                        self.is_win = True
                         return
-                    self.isWin = False
+                    self.is_win = False
                     return 
                 num += 1
 
-        self.isWin = True
+        self.is_win = True
 
     def draw(self):
         gap = self.width // self.rows
         text_pos = gap
-        linecolor = (0,0,0) if not self.isWin else (0,255,0)
+        linecolor = (0,0,0) if not self.is_win else (0,255,0)
 
         for i in range(self.rows+1):
             pygame.draw.line(self.screen, linecolor, (0,i*gap), (self.width,i*gap), 1)

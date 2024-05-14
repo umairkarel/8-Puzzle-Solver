@@ -4,36 +4,43 @@
     @author: umairkarel
 """
 
-position = {1:(0,0), 2:(0,1), 3:(0,2),
-            4:(1,0), 5:(1,1), 6:(1,2),
-            7:(2,0), 8:(2,1)}
+from constants import POSITIONS, GOAL_STATE
 
-goal  = [[1,2,3],
-         [4,5,6],
-         [7,8,0]]
 
 class Node:
+    """Node for Board"""
+
     def __init__(self, data, level, f):
         self.data = data
         self.f = f
-        self.level = 0
-        self.N = len(data)
+        self.level = level
+        self.data_length = len(data)
         self.prev = None
 
     def neighbors(self):
+        """
+        Generates neighboring nodes by making valid moves on the CURRENTent node and returns them.
+        """
         neighbors = []
-        N = self.N
+        moves, (x, y) = self.find_moves()
 
-        moves, (x,y) = self.find_moves()
-
-        for i,j in moves:
+        for i, j in moves:
             state = self.copy(self.data)
             state[x][y], state[i][j] = state[i][j], state[x][y]
-            neighbors.append(Node(state, self.level+1, 0))
+            neighbors.append(Node(state, self.level + 1, 0))
 
         return neighbors
 
     def copy(self, data):
+        """
+        A function to copy a 2D list and return the copied list.
+
+        Parameters:
+            data (list): The 2D list to be copied.
+
+        Returns:
+            list: A copy of the input 2D list.
+        """
         temp = []
 
         for i in data:
@@ -42,55 +49,84 @@ class Node:
                 t.append(j)
             temp.append(t)
         return temp
-        
-    
-    def find_blank(self, data):
-        N = self.N
 
-        for i in range(N):
-            for j in range(N):
+    def find_blank(self, data):
+        """
+        A function to find the position of the blank space (0) in a 2D list.
+
+        Parameters:
+            data (list): The 2D list to search for the blank space.
+
+        Returns:
+            tuple: The row and column index of the blank space.
+        """
+
+        for i in range(self.data_length):
+            for j in range(self.data_length):
                 if data[i][j] == 0:
-                    return (i,j)
+                    return (i, j)
 
     def find_moves(self):
-        x,y = self.find_blank(self.data)
+        """
+        A function to find possible moves based on the blank space position in a 2D list.
+
+        Returns:
+            list: A list of possible moves represented as tuples.
+        """
+        x, y = self.find_blank(self.data)
         moves = []
 
-        if (x != 0):
-            moves.append((x-1,y))
-        if (y != 0):
-            moves.append((x,y-1))
-        if (y != 2):
-            moves.append((x,y+1))
-        if (x != 2):
-            moves.append((x+1,y))
+        if x != 0:
+            moves.append((x - 1, y))
+        if y != 0:
+            moves.append((x, y - 1))
+        if y != 2:
+            moves.append((x, y + 1))
+        if x != 2:
+            moves.append((x + 1, y))
 
-        return moves, (x,y)
+        return moves, (x, y)
+
 
 def heuristic(board, goal, heuristic_func):
+    """
+    A heuristic function to calculate the cost based on the given board state and goal state
+
+    Parameters:
+    - board: The CURRENTent state of the board.
+    - goal: The goal state of the board.
+    - heuristic_func: The type of heuristic function to be used ("hamming" or "manhattan").
+
+    Returns:
+    - count: The total cost calculated based on the heuristic function selected.
+    """
     count = 0
 
     # Hamming Priority
-    if heuristic_func=='hamming':
+    if heuristic_func == "hamming":
         for i in range(3):
             for j in range(3):
                 if board[i][j] and board[i][j] != goal[i][j]:
                     count += 1
 
     # Manhattan Distance
-    elif heuristic_func=='manhattan':
+    elif heuristic_func == "manhattan":
         for i in range(3):
             for j in range(3):
                 if board[i][j]:
-                    x,y = position[board[i][j]]
-                    manhattan = abs(x-i) + abs(y-j)
+                    x, y = POSITIONS[board[i][j]]
+                    manhattan = abs(x - i) + abs(y - j)
                     count += manhattan
 
     return count
 
-def getPath():
+
+def get_path():
+    """
+    A function that retrieves the path from the current node to the root node.
+    """
     path = []
-    temp = curr
+    temp = CURRENT
     path.insert(0, temp)
 
     while temp.prev:
@@ -99,37 +135,49 @@ def getPath():
 
     return path
 
-curr = None
+
+CURRENT = None
+
+
 def solve(start, heuristic_func):
-    global curr
+    """
+    A* search algorithm to solve the puzzle using the given heuristic function.
+
+    Parameters:
+        start: The initial state of the puzzle.
+        heuristic_func: The type of heuristic function to be used ("hamming" or "manhattan").
+
+    Returns:
+        The path to the goal state.
+    """
+    global CURRENT
 
     openSet = []
     closedSet = []
 
     start = Node(start, 0, 0)
-    start.f = heuristic(start.data, goal, heuristic_func) + start.level
+    start.f = heuristic(start.data, GOAL_STATE, heuristic_func) + start.level
     openSet.append(start)
 
     while len(openSet) > 0:
-        low = 0
-        for i in range(len(openSet)):
-            if openSet[i].f < openSet[low].f:
-                low = i
-                
-        curr = openSet[low]
+        low = min(openSet, key=lambda x: x.f)
+        CURRENT = openSet[low]
 
-        if heuristic(curr.data, goal, heuristic_func) == 0:
+        if heuristic(CURRENT.data, GOAL_STATE, heuristic_func) == 0:
             break
 
-        closedSet.append(curr.data)
-        openSet.remove(curr)
+        closedSet.append(CURRENT.data)
+        openSet.remove(CURRENT)
 
-        for neighbor in curr.neighbors():
+        for neighbor in CURRENT.neighbors():
             if neighbor.data not in closedSet:
-                neighbor.f = heuristic(neighbor.data, goal, heuristic_func) + neighbor.level
+                neighbor.f = (
+                    heuristic(neighbor.data, GOAL_STATE, heuristic_func)
+                    + neighbor.level
+                )
                 openSet.append(neighbor)
-                neighbor.prev = curr
+                neighbor.prev = CURRENT
 
         # openSet.sort(key = lambda x:x.f,reverse=False)
 
-    return getPath()
+    return get_path()

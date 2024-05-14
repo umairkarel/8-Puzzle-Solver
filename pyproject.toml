@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "8-puzzle-solver"
+version = "0.1.0"
+description = "8 Puzzle Game and Solver"
+authors = ["umairkarel <umair.karel@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "8_puzzle_solver"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = "^2.5.2"
+
+[tool.pylint.messages_control]
+disable = "E1101, W0601"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
